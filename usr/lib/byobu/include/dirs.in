@@ -24,6 +24,37 @@ PKG="byobu"
 [ -r "$HOME/.byoburc" ] && . "$HOME/.byoburc"
 [ -n "$BYOBU_PREFIX" ] || BYOBU_PREFIX="@prefix@"
 
+# Enable the conda command
+if ! (type conda 2>&1 | grep -q 'conda is a function'); then
+	conda_sh="etc/profile.d/conda.sh"
+	if [ -n "$BYOBU_CONDA_ROOT" ]; then
+		# User defined location
+		. "$BYOBU_CONDA_ROOT/$conda_sh"
+	elif [ -n $CONDA_EXE ]; then
+		# When the environment is already activated
+		. "$(cd $(dirname $CONDA_EXE)/..; pwd)/$conda_sh"
+	elif [ -r "${BYOBU_PREFIX}/${conda_sh}" ]; then
+		# Some install byobu on the base environment
+		. "${BYOBU_PREFIX}/${conda_sh}"
+	elif [ -r "${BYOBU_PREFIX}/../../${conda_sh}" ]; then
+		# Others on environments from the root
+		. "${BYOBU_PREFIX}/../../${conda_sh}"
+	elif [ -r "/${conda_sh}" ]; then
+		# Others have helpful sysadmins
+		. "/${conda_sh}"
+	else
+		echo "ERROR: Please source etc/profile.d/conda.sh first."
+		echo "ERROR: Alternatively, activate the byobu environment and call byobu-enable-conda"
+		exit 1
+	fi
+fi
+BYOBU_CONDA_ROOT=$_CONDA_ROOT
+
+# ...and some users install byobu on conda environments
+if [ "$CONDA_PREFIX" != "$BYOBU_PREFIX" ]; then
+	conda activate ${BYOBU_PREFIX}
+fi
+
 # Create and export the user configuration directory
 if [ -d "$BYOBU_CONFIG_DIR" ]; then
 	export BYOBU_CONFIG_DIR="$BYOBU_CONFIG_DIR"

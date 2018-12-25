@@ -22,11 +22,14 @@ AC_OUTPUT(Makefile \
 	etc/profile.d/Makefile \
 	etc/profile.d/Z97-byobu.sh \
 	usr/bin/byobu \
+	usr/bin/byobu-conda \
 	usr/bin/byobu-config \
 	usr/bin/byobu-ctrl-a \
 	usr/bin/byobu-disable \
+	usr/bin/byobu-disable-conda \
 	usr/bin/byobu-disable-prompt \
 	usr/bin/byobu-enable \
+	usr/bin/byobu-enable-conda \
 	usr/bin/byobu-enable-prompt \
 	usr/bin/byobu-export \
 	usr/bin/byobu-janitor \

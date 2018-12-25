@@ -1,0 +1,60 @@
+#!/bin/sh -e
+#
+#    byobu-enable-conda
+#    Copyright (C) 2013-2014 Dustin Kirkland
+#    Copyright (C) 2018-2019 Patrick Sodré
+#
+#    Authors: Dustin Kirkland <kirkland@byobu.org>
+#             Patrick Sodré <psodre@gmail.com>
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, version 3 of the License.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+[ "$SHELL" = "/bin/bash" ] || exit 1
+
+PKG="byobu"
+[ -r "$HOME/.byoburc" ] && . "$HOME/.byoburc"
+[ -z "${BYOBU_PREFIX}" ] && export BYOBU_PREFIX="@prefix@" || export BYOBU_PREFIX
+. "${BYOBU_PREFIX}/lib/${PKG}/include/common"
+
+
+prompt="${BYOBU_CONFIG_DIR}/conda"
+# This gets the conda function into the shell
+echo ". ${BYOBU_CONDA_ROOT}/etc/profile.d/conda.sh #byobu-conda#" > "$prompt"
+# This gets byobu back in the path
+echo "_conda_reactivate #byobu-conda#" >> "$prompt"
+if [ "${BYOBU_PREFIX}" != "${BYOBU_CONDA_ROOT}" ]; then
+	# This gets conda base reactivated with higher precedence than byobu.
+	echo "conda activate ${BYOBU_CONDA_ROOT} #byobu-conda#" >> "$prompt"
+
+	echo
+	echo "Byobu was not installed to the base conda environment."
+	echo "Please increase conda's max shell level stacking to at least 3."
+	echo "  conda config --set max_shlvl 3"
+	echo
+fi
+
+
+$PKG-disable-conda --no-reload "$1" || true
+printf "[ -n \"\$BYOBU_PREFIX\" ] && [ -r $prompt ] && . $prompt   #byobu-conda#\n" >> "$HOME/.bashrc"
+printf "BYOBU_CONDA_ROOT=$BYOBU_CONDA_ROOT    #byobu-conda#\n" >> $HOME/.byoburc
+
+if [ -n "$TMUX" ]; then
+	tmux send-keys " . ~/.bashrc" \; send-keys Enter
+else
+	echo
+	echo "You will need to reload your shell configuration for this to take effect..."
+	echo "  . ~/.bashrc"
+	echo
+fi
+
+# vi: syntax=sh ts=4 noexpandtab
